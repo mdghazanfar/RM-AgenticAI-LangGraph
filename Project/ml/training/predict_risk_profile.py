@@ -1,14 +1,4 @@
-# TODO: Import numpy, pickle for model loading
-# TODO: Import settings for model paths
-# TODO: Create async predict_risk_profile function accepting prospect features
-# TODO: Load risk model and LabelEncoder from disk or use defaults
-# TODO: Prepare features array from prospect data
-# TODO: Call model.predict and model.predict_proba
-# TODO: Extract risk level and confidence score
-# TODO: Create fallback rule-based prediction if model unavailable:
-#   - Check age, income, savings, investment experience
-#   - Apply investment rules to determine risk level
-# TODO: Return (risk_level, confidence_score) tuple
+
 import os
 import numpy as np
 import pandas as pd
@@ -17,8 +7,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from config import get_settings
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from config import get_settings
 
 # ----------------------------
 # Paths and Settings
@@ -33,6 +25,9 @@ DATA_PATH = Path(settings.models_dir).parent / "data" / "risk_profile_training_d
 # ----------------------------
 def train_risk_model():
     data = pd.read_csv(DATA_PATH)
+    if "target_goal_amount" not in data.columns:
+        np.random.seed(42)
+        data["target_goal_amount"] = np.random.randint(500000, 5000000, len(data))
 
     feature_columns = [
         "age",

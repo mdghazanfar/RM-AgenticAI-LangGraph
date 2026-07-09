@@ -1,14 +1,3 @@
-# TODO: Import necessary modules and agents
-# TODO: Create async product_recommendation_node function accepting WorkflowState
-# TODO: Check that risk_assessment completed successfully
-# TODO: Instantiate ProductSpecialistAgent
-# TODO: Call agent.execute(state) with error handling
-# TODO: Log node execution with timestamps
-# TODO: Update state.current_step to "product_recommendation"
-# TODO: Add step to completed_steps on success or failed_steps on failure
-# TODO: Raise exception on failure (critical node)
-# TODO: Return updated state
-
 
 """Product recommendation node.
 
@@ -32,12 +21,13 @@ def _score_product(row: dict, state: WorkflowState) -> float:
     """
     score = 0.0
     # risk alignment
-    try:
-        ra = state.analysis.risk_assessment.risk_level.lower()
-        if ra in row.get("risk_profile", "").lower():
-            score += 0.5
-    except Exception:
-        pass
+    if state.analysis and state.analysis.risk_assessment:
+        try:
+            ra = state.analysis.risk_assessment.risk_level.lower()
+            if ra in row.get("risk_profile", "").lower():
+                score += 0.5
+        except Exception:
+            pass
 
     # lower fees preferred
     try:

@@ -5,7 +5,7 @@
 Product Specialist Agent - Generate product recommendations.
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from langraph_agents.base_agent import CriticalAgent
 from state import WorkflowState, ProductRecommendation, ProspectData
 from config import get_settings, get_gemini_model
@@ -32,7 +32,7 @@ class ProductSpecialistAgent(CriticalAgent):
     def _load_products(self) -> List[Dict[str, Any]]:
         """Load product catalog."""
         settings = get_settings()
-        products = load_raw_products_csv(settings.products_csv)
+        products = load_raw_products_csv(str(settings.products_csv))
         if not products:
             self.logger.warning("Products list empty, using dummy data")
             return self._get_dummy_products()
@@ -92,9 +92,13 @@ class ProductSpecialistAgent(CriticalAgent):
         """Generate product recommendations."""
         self.logger.info("Starting product recommendation")
         
+        if not state.prospect or not state.prospect.prospect_data:
+            self.logger.warning("No prospect data available for product recommendations")
+            return state
+            
         prospect_data = state.prospect.prospect_data
-        risk_assessment = state.analysis.risk_assessment
-        persona = state.analysis.persona_classification
+        risk_assessment = state.analysis.risk_assessment if state.analysis else None
+        persona = state.analysis.persona_classification if state.analysis else None
         
         # Filter products
         filtered_products = self._filter_products(
@@ -107,6 +111,9 @@ class ProductSpecialistAgent(CriticalAgent):
         # Generate recommendations
         recommendations = await self._generate_recommendations(filtered_products, state)
         
+        if not state.recommendations:
+            from state import RecommendationState
+            state.recommendations = RecommendationState()
         state.recommendations.recommended_products = recommendations
         
         self.logger.info(f"Generated {len(recommendations)} product recommendations")
@@ -134,7 +141,8 @@ class ProductSpecialistAgent(CriticalAgent):
         allowed_risks = risk_mapping.get(risk_level, ["Moderate"])
         
         # Max investment amount (80% of savings or 500K)
-        max_investment = min(prospect_data.current_savings * 0.8, 500000)
+        savings = prospect_data.current_savings if (prospect_data and prospect_data.current_savings is not None) else 0
+        max_investment = min(savings * 0.8, 500000)
         
         for product in products:
             # Check risk alignment
@@ -189,8 +197,8 @@ class ProductSpecialistAgent(CriticalAgent):
         """Calculate product suitability score."""
         score = 0.5  # Base score
         
-        risk_assessment = state.analysis.risk_assessment
-        persona = state.analysis.persona_classification
+        risk_assessment = state.analysis.risk_assessment if state.analysis else None
+        persona = state.analysis.persona_classification if state.analysis else None
         
         # Risk alignment
         if risk_assessment:
@@ -217,11 +225,14 @@ class ProductSpecialistAgent(CriticalAgent):
     
     async def _generate_justification(self, product: Dict, state: WorkflowState) -> str:
         """Generate recommendation justification."""
+        risk_assessment = state.analysis.risk_assessment if state.analysis else None
+        persona = state.analysis.persona_classification if state.analysis else None
+        
+        risk_level = risk_assessment.risk_level if risk_assessment else "Moderate"
+        persona_type = persona.persona_type if persona else "Steady Saver"
+        
         if self.llm:
             try:
-                risk_level = state.analysis.risk_assessment.risk_level if state.analysis.risk_assessment else "Moderate"
-                persona_type = state.analysis.persona_classification.persona_type if state.analysis.persona_classification else "Steady Saver"
-                
                 prompt = f"""Generate a brief justification (max 50 words) for recommending this product:
  
 Product: {product.get('product_name')}
@@ -240,12 +251,12 @@ Justification:"""
                 self.logger.warning(f"AI justification failed: {e}")
         
         # Default justification
-        return f"Suitable for {state.analysis.risk_assessment.risk_level if state.analysis.risk_assessment else 'Moderate'} risk profile with {product.get('expected_returns', 'competitive')} expected returns."
+        return f"Suitable for {risk_level} risk profile with {product.get('expected_returns', 'competitive')} expected returns."
     
     def _get_risk_alignment(self, product: Dict, state: WorkflowState) -> str:
         """Get risk alignment statement."""
         product_risk = product.get("risk_level", "Moderate")
-        investor_risk = state.analysis.risk_assessment.risk_level if state.analysis.risk_assessment else "Moderate"
+        investor_risk = state.analysis.risk_assessment.risk_level if (state.analysis and state.analysis.risk_assessment) else "Moderate"
         
         if product_risk == investor_risk:
             return "Perfect alignment with risk profile"

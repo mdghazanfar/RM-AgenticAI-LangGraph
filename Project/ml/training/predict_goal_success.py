@@ -1,16 +1,3 @@
-# TODO: Import numpy, pickle for model loading
-# TODO: Import settings for model paths
-# TODO: Create async predict_goal_success function accepting goal and financial data
-# TODO: Load goal model and LabelEncoder from disk or use defaults
-# TODO: Prepare features array from goal data and financial metrics
-# TODO: Call model.predict and model.predict_proba
-# TODO: Extract success prediction and probability
-# TODO: Create fallback rule-based prediction if model unavailable:
-#   - Check annual income vs target goal amount
-#   - Check investment horizon
-#   - Apply financial feasibility rules
-# TODO: Return (goal_achievable, probability) tuple
-
 
 
 
@@ -23,8 +10,10 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import asyncio
-from config import get_settings
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from config import get_settings
 
 # Use configured paths from project settings so tests and runtime use the
 # same model locations as the rest of the app.

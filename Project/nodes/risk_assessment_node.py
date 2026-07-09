@@ -1,13 +1,4 @@
-# TODO: Import necessary modules and agents
-# TODO: Create async risk_assessment_node function accepting WorkflowState
-# TODO: Check that data_analysis completed successfully
-# TODO: Instantiate RiskAssessmentAgent
-# TODO: Call agent.execute(state) with error handling
-# TODO: Log node execution with timestamps
-# TODO: Update state.current_step to "risk_assessment"
-# TODO: Add step to completed_steps on success or failed_steps on failure
-# TODO: Raise exception on failure (critical node)
-# TODO: Return updated state
+
 """Risk assessment node.
 
 Runs a RiskAssessmentAgent if available; otherwise uses a simple rule-based

@@ -1,13 +1,3 @@
-# TODO: Import logger from loguru, sys, and Optional from typing
-# TODO: Import get_settings from .settings
-# TODO: Create setup_logging function that accepts optional log_level parameter
-# TODO: Get settings and determine log level (from param or settings.log_level)
-# TODO: Remove default logger handler
-# TODO: Add stdout console handler with colored format (time, level, name, function, line, message)
-# TODO: Add file handler to logs/app.log with rotation (10MB) and retention (30 days)
-# TODO: Add agent-specific file handler to logs/agents.log with rotation (5MB) and retention (7 days)
-# TODO: Create get_logger function that binds logger with module name
-
 
 """
 Logging configuration using Loguru.

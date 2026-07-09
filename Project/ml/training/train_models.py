@@ -1,23 +1,3 @@
-# TODO: Import pandas, numpy for data handling
-# TODO: Import scikit-learn models (RandomForestClassifier)
-# TODO: Import LabelEncoder and train_test_split
-# TODO: Import pickle for model persistence
-# TODO: Create train_risk_model function:
-#   - Load training data from CSV
-#   - Prepare features and target variable
-#   - Split data into train/test sets
-#   - Train RandomForest classifier
-#   - Evaluate model performance
-#   - Save model and encoders to disk
-# TODO: Create train_goal_model function:
-#   - Load training data
-#   - Prepare features for goal success prediction
-#   - Train classifier
-#   - Evaluate performance
-#   - Save model and encoders
-# TODO: Create train_models function orchestrating both training pipelines
-# TODO: Add progress reporting during training
-# TODO: Handle missing model data with informative errors
 
 
 
@@ -30,7 +10,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
 import joblib
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from config import get_settings, get_logger
 
 logger = get_logger("train_models")
@@ -91,14 +73,16 @@ def train_risk_model():
     
     # Encode categorical
     label_encoders = {}
-    for col in X.select_dtypes(include=['object']).columns:
-        le = LabelEncoder()
-        X[col] = le.fit_transform(X[col])
-        label_encoders[col] = le
+    for col in features:
+        if not pd.api.types.is_numeric_dtype(X[col].dtype):
+            le = LabelEncoder()
+            X[col] = np.asarray(le.fit_transform(X[col].astype(str)))
+            label_encoders[col] = le
     
     # Encode target
     target_encoder = LabelEncoder()
     y_encoded = target_encoder.fit_transform(y)
+    label_encoders['risk_profile'] = target_encoder
     
     # Split
     X_train, X_test, y_train, y_test = train_test_split(
@@ -141,10 +125,14 @@ def train_goal_model():
     
     # Encode categorical
     label_encoders = {}
-    for col in X.select_dtypes(include=['object']).columns:
-        le = LabelEncoder()
-        X[col] = le.fit_transform(X[col])
-        label_encoders[col] = le
+    for col in features:
+        if not pd.api.types.is_numeric_dtype(X[col].dtype):
+            le = LabelEncoder()
+            X[col] = np.asarray(le.fit_transform(X[col].astype(str)))
+            label_encoders[col] = le
+            # Add exp_encoder alias for compatibility
+            if col == 'investment_experience_level':
+                label_encoders['exp_encoder'] = le
     
     # Split
     X_train, X_test, y_train, y_test = train_test_split(

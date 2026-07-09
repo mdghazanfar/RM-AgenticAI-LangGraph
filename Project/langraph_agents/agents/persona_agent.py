@@ -17,7 +17,7 @@
 Persona Agent - Classify investor personality type.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 from langraph_agents.base_agent import OptionalAgent
 from state import WorkflowState, PersonaResult, ProspectData, RiskAssessmentResult
 from config import get_settings, get_gemini_model
@@ -49,8 +49,12 @@ class PersonaAgent(OptionalAgent):
         """Classify persona and generate insights."""
         self.logger.info("Starting persona classification")
         
+        if not state.prospect or not state.prospect.prospect_data:
+            self.logger.warning("No prospect data available for persona classification")
+            return state
+            
         prospect_data = state.prospect.prospect_data
-        risk_assessment = state.analysis.risk_assessment
+        risk_assessment = state.analysis.risk_assessment if state.analysis else None
         
         # Classify persona
         persona_type = await self._classify_persona(prospect_data, risk_assessment)
@@ -72,6 +76,9 @@ class PersonaAgent(OptionalAgent):
             behavioral_insights=behavioral_insights
         )
         
+        if not state.analysis:
+            from state import AnalysisState
+            state.analysis = AnalysisState()
         state.analysis.persona_classification = persona_result
         
         self.logger.info(f"Persona classified: {persona_type} (confidence: {confidence_score:.2f})")
@@ -81,7 +88,7 @@ class PersonaAgent(OptionalAgent):
     async def _classify_persona(
         self,
         prospect_data: ProspectData,
-        risk_assessment: RiskAssessmentResult
+        risk_assessment: Optional[RiskAssessmentResult]
     ) -> str:
         """Classify persona type."""
         if self.llm:
@@ -102,11 +109,14 @@ Choose ONE of these personas:
 Respond with ONLY the persona name, nothing else."""
                 
                 response = generate_llm_response(self.llm, prompt, {})
+                response_lower = response.lower()
                 
-                if "Aggressive Growth" in response:
+                if "aggressive" in response_lower:
                     return "Aggressive Growth"
-                elif "Cautious Planner" in response:
+                elif "cautious" in response_lower or "conservative" in response_lower:
                     return "Cautious Planner"
+                elif "steady" in response_lower or "saver" in response_lower:
+                    return "Steady Saver"
                 else:
                     return "Steady Saver"
                     
@@ -121,7 +131,7 @@ Respond with ONLY the persona name, nothing else."""
         self,
         persona_type: str,
         prospect_data: ProspectData,
-        risk_assessment: RiskAssessmentResult
+        risk_assessment: Optional[RiskAssessmentResult]
     ) -> List[str]:
         """Generate behavioral insights."""
         if self.llm:
@@ -134,9 +144,20 @@ Risk Level: {risk_assessment.risk_level if risk_assessment else 'Moderate'}
 Provide 3 specific insights (one per line, starting with "- ")."""
                 
                 response = generate_llm_response(self.llm, prompt, {})
-                insights = [line[1:].strip() for line in response.split('\n') if line.strip().startswith('-')]
                 
-                if len(insights) >= 3:
+                insights = []
+                for line in response.split('\n'):
+                    line_stripped = line.strip()
+                    if line_stripped.startswith(('-', '*')):
+                        insights.append(line_stripped[1:].strip())
+                    elif line_stripped.startswith(('1.', '2.', '3.')):
+                        insights.append(line_stripped[2:].strip())
+                
+                # Fill to 3 insights if we have some but not 3
+                if len(insights) > 0:
+                    if len(insights) < 3:
+                        defaults = get_default_behavioral_insights(persona_type)
+                        insights.extend(defaults[:3 - len(insights)])
                     return insights[:3]
                     
             except Exception as e:

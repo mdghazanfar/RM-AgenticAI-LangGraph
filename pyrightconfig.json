@@ -1,4 +1,5 @@
 {
   "venvPath": ".",
-  "venv": "venv"
+  "venv": "venv",
+  "extraPaths": ["/home/ghazanfar/Desktop/Hackthon/finalCode/RM-AgenticAI-LangGraph/Project"]
 }

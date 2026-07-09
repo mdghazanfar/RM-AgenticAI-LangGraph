@@ -1,17 +1,3 @@
-# TODO: Create RMAssistantAgent class inheriting from BaseAgent
-# TODO: Implement process_query handling user questions
-# TODO: Implement retrieve_context extracting relevant analysis data
-# TODO: Implement generate_response creating AI-powered response
-# TODO: Implement format_response formatting response for display
-# TODO: Implement async run method:
-#   - Get current chat query from state
-#   - Retrieve relevant context from analysis results
-#   - Generate response using LLM based on query and context
-#   - Format response for presentation
-#   - Update conversation history
-#   - Return updated chat state
-
-
 
 """RM Assistant agent.
 

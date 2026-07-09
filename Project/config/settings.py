@@ -9,7 +9,7 @@ app works no matter the current working directory.
 
 import os
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, Literal, TYPE_CHECKING
 from pathlib import Path
 from pydantic import Field
 
@@ -18,6 +18,7 @@ try:
     from dotenv import dotenv_values
     _HAS_DOTENV = True
 except Exception:
+    dotenv_values = None
     _HAS_DOTENV = False
 
 # Base project root (parent of this config package)
@@ -50,7 +51,7 @@ except Exception:
 
 # Load .env into environment defensively
 env_path = BASE_DIR / ".env"
-if env_path.exists() and _HAS_DOTENV:
+if env_path.exists() and _HAS_DOTENV and dotenv_values is not None:
     try:
         values = dotenv_values(env_path)
         for k, v in values.items():
@@ -64,11 +65,14 @@ if env_path.exists() and _HAS_DOTENV:
         pass
 
 # Try to import from pydantic_settings, fallback to pydantic
-try:
+if TYPE_CHECKING:
     from pydantic_settings import BaseSettings, SettingsConfigDict
-except Exception:
-    from pydantic import BaseSettings
-    SettingsConfigDict = None
+else:
+    try:
+        from pydantic_settings import BaseSettings, SettingsConfigDict
+    except Exception:
+        from pydantic import BaseSettings
+        SettingsConfigDict = None
 
 
 class Settings(BaseSettings):
@@ -110,7 +114,7 @@ class Settings(BaseSettings):
     # Streamlit Configuration
     page_title: str = Field(default="RM Agentic AI System")
     page_icon: str = Field(default="🤖")
-    layout: str = Field(default="wide")
+    layout: Literal["centered", "wide"] = Field(default="wide")
 
     # Agent Configuration
     default_temperature: float = Field(default=0.1)

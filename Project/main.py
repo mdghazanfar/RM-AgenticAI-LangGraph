@@ -1,21 +1,3 @@
-# TODO: Import streamlit as st
-# TODO: Import async functions and pandas for data handling
-# TODO: Import ProspectAnalysisWorkflow from graph or workflow module
-# TODO: Import configuration and logging setup
-# TODO: Create page configuration (title, icon, layout)
-# TODO: Create main title and description
-# TODO: Create sidebar with prospect selection dropdown from prospects.csv
-# TODO: Create analysis trigger button
-# TODO: Implement prospect data display in formatted table
-# TODO: Implement analysis execution with progress indicators
-# TODO: Display analysis results in tabs:
-#   - Risk Assessment tab with risk level, confidence, factors
-#   - Persona Classification tab with type and insights
-#   - Product Recommendations tab with table of products
-#   - Data Quality tab with validation errors and quality score
-# TODO: Create interactive chat interface for RM queries
-# TODO: Add export functionality for analysis results
-# TODO: Implement error handling and logging for user actions
 
 
 
@@ -57,519 +39,21 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Clean Professional CSS
-st.markdown("""
-<style>
-    /* Global Styles */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    
-    .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 2rem;
-        max-width: 1400px;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Professional Background */
-    .main {
-        background: #f8fafc;
-    }
-    
-    /* Header Styling with Full Page Background - Landing Page */
-    .main-header {
-        background: linear-gradient(135deg, rgba(30, 58, 138, 0.85) 0%, rgba(55, 48, 163, 0.85) 100%),
-                    url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
-        background-size: cover;
-        background-position: center;
-        background-blend-mode: overlay;
-        padding: 8rem 2rem;
-        border-radius: 0px;
-        margin: -2rem -1rem 2rem -1rem;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-        min-height: 80vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
-    }
-    
-    .main-title {
-        color: white;
-        font-size: 4.5rem;
-        font-weight: 800;
-        margin-bottom: 2rem;
-        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        letter-spacing: -0.5px;
-    }
-    
-    .main-subtitle {
-        color: #e2e8f0;
-        font-size: 1.8rem;
-        font-weight: 500;
-        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        max-width: 800px;
-        line-height: 1.5;
-        margin-bottom: 3rem;
-    }
-    
-    # .cta-button {
-    #     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    #     color: white;
-    #     border: none;
-    #     border-radius: 12px;
-    #     padding: 1.2rem 2.5rem;
-    #     font-size: 1.2rem;
-    #     font-weight: 600;
-    #     cursor: pointer;
-    #     transition: all 0.3s ease;
-    #     box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-    #     text-decoration: none;
-    #     display: inline-block;
-    # }
-    
-    # .cta-button:hover {
-    #     transform: translateY(-3px);
-    #     box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4);
-    #     background: linear-gradient(135deg, #5b5cea 0%, #7c4cf5 100%);
-    # }
-    
-    /* Enhanced Metric Cards - Smaller */
-    .metric-card {
-        background: white;
-        padding: 1rem 0.5rem;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        text-align: center;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        height: 90px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .metric-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-color: #6366f1;
-    }
-    
-    .metric-label {
-        font-size: 0.7rem;
-        color: #64748b;
-        font-weight: 600;
-        margin-bottom: 0.3rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .metric-value {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #1e293b;
-    }
-    
-    /* 2x2 Grid Layout */
-    .grid-2x2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.8rem;
-        margin: 1rem 0;
-    }
-    
-    .grid-item {
-        min-height: 90px;
-    }
-    
-    /* Loading Animation */
-    .loading-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        flex-direction: column;
-    }
-    
-    .loading-spinner {
-        width: 50px;
-        height: 50px;
-        border: 4px solid #e2e8f0;
-        border-top: 4px solid #6366f1;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    /* Analysis Sections */
-    .analysis-section {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-    
-    /* Chat Input Styling */
-    .chat-input-container {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        background: white;
-        padding: 1rem;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        margin: 1rem 0;
-    }
-    
-    .chat-input {
-        flex: 1;
-        border: none;
-        outline: none;
-        padding: 0.75rem;
-        font-size: 1rem;
-        background: transparent;
-    }
-    
-    .send-button {
-        background: #6366f1;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .send-button:hover {
-        background: #4f46e5;
-        transform: translateY(-1px);
-    }
-    
-    /* Suggestion Bubbles */
-    .suggestions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 0.75rem;
-        margin: 1rem 0;
-    }
-    
-    .suggestion-bubble {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 0.75rem 1.5rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-align: center;
-        font-size: 0.9rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    
-    .suggestion-bubble:hover {
-        background: #6366f1;
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
-    }
-    
-    /* Chat Messages */
-    .chat-message {
-        padding: 1rem;
-        border-radius: 12px;
-        margin: 0.5rem 0;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .user-message {
-        background: #f1f5f9;
-        margin-left: 2rem;
-    }
-    
-    .assistant-message {
-        background: white;
-        margin-right: 2rem;
-    }
-    
-    /* Performance Visualization */
-    .performance-metrics {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin: 2rem 0 1rem 0;
-    }
-    
-    /* Button Enhancements */
-    .stButton > button {
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Sidebar Enhancements - Professional */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-        border-right: 1px solid #e2e8f0;
-        min-width: 280px !important;
-        max-width: 300px !important;
-    }
-    
-    [data-testid="stSidebar"] .block-container {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-        padding-top: 1rem;
-    }
-    
-    .sidebar-header {
-        background: white;
-        padding: 1.2rem 1rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        text-align: center;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e2e8f0;
-    }
-    
-    .sidebar-header h2 {
-        color: #1e293b;
-        margin: 0;
-        font-size: 1.2rem;
-        font-weight: 700;
-    }
-    
-    /* Compact sidebar components */
-    .sidebar-compact .stSubheader {
-        font-size: 0.95rem;
-        margin-bottom: 0.75rem;
-        color: #374151;
-        font-weight: 600;
-        border-bottom: 2px solid #e5e7eb;
-        padding-bottom: 0.5rem;
-    }
-    
-    .sidebar-compact .stButton button {
-        font-size: 0.85rem;
-        padding: 0.6rem 1rem;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
-    }
-    
-    .sidebar-compact .stButton button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
-        background: linear-gradient(135deg, #5b5cea 0%, #7c4cf5 100%);
-    }
-    
-    .sidebar-compact .stSelectbox {
-        font-size: 0.85rem;
-    }
-    
-    .sidebar-compact .stSelectbox div[data-baseweb="select"] {
-        border-radius: 8px;
-        border: 1px solid #d1d5db;
-        transition: all 0.2s ease;
-    }
-    
-    .sidebar-compact .stSelectbox div[data-baseweb="select"]:hover {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-    
-    .sidebar-compact .stInfo {
-        font-size: 0.8rem;
-        padding: 1rem;
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border-radius: 10px;
-        border-left: 4px solid #0ea5e9;
-        border: 1px solid #bae6fd;
-    }
-    
-    .sidebar-compact .stSuccess {
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-        border: 1px solid #bbf7d0;
-        border-radius: 6px;
-        padding: 0.5rem;
-        font-size: 0.8rem;
-    }
-    
-    .sidebar-compact .stWarning {
-        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-        border: 1px solid #fcd34d;
-        border-radius: 6px;
-        padding: 0.5rem;
-        font-size: 0.8rem;
-    }
-    
-    /* Sidebar divider styling */
-    .sidebar-compact .stDivider {
-        margin: 1.5rem 0;
-        border-color: #e5e7eb;
-    }
-    
-    /* Status indicators in sidebar */
-    .sidebar-status {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
-        border-radius: 6px;
-        margin: 0.25rem 0;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-    
-    .status-success {
-        background: rgba(16, 185, 129, 0.1);
-        color: #065f46;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-    
-    .status-warning {
-        background: rgba(245, 158, 11, 0.1);
-        color: #92400e;
-        border: 1px solid rgba(245, 158, 11, 0.2);
-    }
-    
-    /* About section styling */
-    .about-section {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        padding: 1.2rem;
-        border-radius: 12px;
-        border-left: 4px solid #6366f1;
-        border: 1px solid #e2e8f0;
-        margin-top: 1rem;
-    }
-    
-    .about-section h4 {
-        margin: 0 0 0.5rem 0;
-        color: #1e293b;
-        font-size: 0.95rem;
-        font-weight: 700;
-    }
-    
-    .about-section p {
-        margin: 0;
-        color: #64748b;
-        font-size: 0.8rem;
-        line-height: 1.4;
-    }
-    
-    /* Compact Visualization */
-    .compact-viz {
-        margin: 0.5rem 0;
-    }
-    
-    /* Custom bullet points */
-    .custom-bullet {
-        list-style-type: none;
-        padding-left: 0;
-    }
-    
-    .custom-bullet li {
-        padding: 0.3rem 0;
-        position: relative;
-        padding-left: 1.2rem;
-    }
-    
-    .custom-bullet li:before {
-        content: "•";
-        color: #6366f1;
-        font-weight: bold;
-        position: absolute;
-        left: 0;
-    }
-    
-    /* Section spacing */
-    .section-spacing {
-        margin-bottom: 1.5rem;
-    }
-    
-    /* Persona Type Styling */
-    .persona-heading {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #64748b;
-        margin-bottom: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .persona-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 1rem;
-    }
-    
-    /* Confidence Score Styling */
-    .confidence-score {
-        text-align: center;
-        padding: 0.8rem;
-        border-radius: 10px;
-        margin: 1rem 0;
-    }
-    
-    /* Premium Streamlit Tabs overrides */
-    div[role="tablist"] {
-        gap: 0.5rem;
-        background-color: #f1f5f9;
-        padding: 0.4rem;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        margin-bottom: 1.5rem;
-    }
-    
-    button[data-baseweb="tab"] {
-        font-size: 0.9rem !important;
-        font-weight: 600 !important;
-        color: #475569 !important;
-        background-color: transparent !important;
-        border-radius: 8px !important;
-        padding: 0.5rem 1rem !important;
-        border: none !important;
-        transition: all 0.2s ease-in-out !important;
-    }
-    
-    button[data-baseweb="tab"]:hover {
-        color: #6366f1 !important;
-        background-color: rgba(99, 102, 241, 0.08) !important;
-    }
-    
-    button[data-baseweb="tab"][aria-selected="true"] {
-        color: white !important;
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
-    }
-    
-    div[role="tablist"] > div[role="presentation"] {
-        display: none !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Theme state
+if "theme" not in st.session_state:
+    st.session_state.theme = "Dark"
+
+# Premium Glassmorphic CSS
+from ui_css import get_css
+st.markdown(get_css(st.session_state.theme), unsafe_allow_html=True)
+
+_CSS_INJECTED = True  # marker so we don't re-read the style block below
+if False:  # -- original CSS removed, now in ui_css.py --
+    pass
+
 
 @st.cache_resource
-def get_workflow() -> ProspectAnalysisWorkflow:
+def get_workflow() -> Optional[ProspectAnalysisWorkflow]:
     """Cache and return workflow instance."""
     try:
         return ProspectAnalysisWorkflow()
@@ -683,19 +167,23 @@ def create_compact_risk_gauge(risk_level: str, confidence: float):
     
     value = risk_mapping.get(risk_level, 50)
     
+    theme = st.session_state.get('theme', 'Dark')
+    font_color = '#FAFAFA' if theme == 'Dark' else '#09090B'
+    axis_color = '#A1A1AA' if theme == 'Dark' else '#71717A'
+
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = value,
         domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': f"Risk Level: {risk_level}", 'font': {'size': 18, 'family': 'Outfit, sans-serif', 'color': '#0f172a'}},
+        title = {'text': f"Risk Level: {risk_level}", 'font': {'size': 18, 'family': 'Outfit, sans-serif', 'color': font_color}},
         gauge = {
-            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': '#64748b'},
-            'bar': {'color': "#4f46e5"},
+            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': '#64748b', 'tickfont': {'color': axis_color}},
+            'bar': {'color': "#3B82F6"},
             'steps': [
-                {'range': [0, 25], 'color': '#ecfdf5'},
-                {'range': [25, 50], 'color': '#fffbeb'},
-                {'range': [50, 75], 'color': '#ffedd5'},
-                {'range': [75, 100], 'color': '#fef2f2'}
+                {'range': [0, 25], 'color': 'rgba(52,211,153,0.12)'},
+                {'range': [25, 50], 'color': 'rgba(251,191,36,0.12)'},
+                {'range': [50, 75], 'color': 'rgba(251,146,60,0.12)'},
+                {'range': [75, 100], 'color': 'rgba(251,113,133,0.12)'}
             ],
         }
     ))
@@ -703,7 +191,7 @@ def create_compact_risk_gauge(risk_level: str, confidence: float):
     fig.update_layout(
         height=250,
         margin=dict(l=30, r=30, t=80, b=30),
-        font={'family': 'Inter, sans-serif', 'color': '#475569'},
+        font={'family': 'Inter, sans-serif', 'color': axis_color},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
@@ -721,7 +209,7 @@ def create_performance_dashboard(state: WorkflowState):
     
     agents = [execution.agent_name for execution in state.agent_executions]
     execution_times = [execution.execution_time or 0 for execution in state.agent_executions]
-    status_colors = ['#10b981' if execution.status == 'completed' else '#ef4444' for execution in state.agent_executions]
+    status_colors = ['#10B981' if execution.status == 'completed' else '#F43F5E' for execution in state.agent_executions]
     
     # Create bar chart
     fig = px.bar(
@@ -733,11 +221,20 @@ def create_performance_dashboard(state: WorkflowState):
         title="Agent Execution Performance"
     )
     
+    theme = st.session_state.get('theme', 'Dark')
+    axis_color = '#A1A1AA' if theme == 'Dark' else '#71717A'
+    grid_color = 'rgba(255,255,255,0.06)' if theme == 'Dark' else 'rgba(0,0,0,0.06)'
+
     fig.update_layout(
         showlegend=False,
         height=350,
         xaxis_tickangle=-45,
-        margin=dict(t=50, b=50)
+        margin=dict(t=50, b=50),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font={'family': 'Inter, sans-serif', 'color': axis_color},
+        xaxis=dict(gridcolor=grid_color, color=axis_color),
+        yaxis=dict(gridcolor=grid_color, color=axis_color)
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -852,7 +349,7 @@ def display_risk_tab(state: WorkflowState):
             color = "#f59e0b"
             emoji = "🟡"
         else:
-            color = "#ef4444"
+            color = "#F43F5E"
             emoji = "🔴"
             
         st.markdown(f"""
@@ -897,7 +394,7 @@ def display_persona_tab(state: WorkflowState):
             color = "#f59e0b"
             emoji = "🟡"
         else:
-            color = "#ef4444"
+            color = "#F43F5E"
             emoji = "🔴"
             
         st.markdown(f"""
@@ -950,15 +447,21 @@ def display_products_tab(state: WorkflowState):
             title="Product Suitability Scores",
             labels={'x': 'Suitability Score (%)', 'y': 'Products'},
             color=suitability_scores,
-            color_continuous_scale='Viridis'
+            color_continuous_scale=[[0, '#3B82F6'], [0.5, '#60A5FA'], [1, '#22D3EE']]
         )
+        theme = st.session_state.get('theme', 'Dark')
+        axis_color = '#A1A1AA' if theme == 'Dark' else '#71717A'
+        grid_color = 'rgba(255,255,255,0.06)' if theme == 'Dark' else 'rgba(0,0,0,0.06)'
+
         fig.update_layout(
             height=300,
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font={'family': 'Inter, sans-serif', 'color': '#475569'},
+            font={'family': 'Inter, sans-serif', 'color': axis_color},
             margin=dict(l=20, r=20, t=50, b=20),
-            coloraxis_showscale=False
+            coloraxis_showscale=False,
+            xaxis=dict(gridcolor=grid_color, color=axis_color),
+            yaxis=dict(gridcolor=grid_color, color=axis_color)
         )
         st.plotly_chart(fig, use_container_width=True)
         
@@ -1004,26 +507,34 @@ def display_quality_tab(state: WorkflowState):
     
     # Quality visualization first
     st.markdown('<div class="section-spacing">', unsafe_allow_html=True)
+    theme = st.session_state.get('theme', 'Dark')
+    font_color = '#FAFAFA' if theme == 'Dark' else '#09090B'
+    axis_color = '#A1A1AA' if theme == 'Dark' else '#71717A'
+
     # Quality gauge
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = quality_percent,
         domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Data Quality Score", 'font': {'size': 16}},
+        title = {'text': "Data Quality Score", 'font': {'size': 16, 'color': font_color}},
+        number = {'font': {'color': font_color}},
         gauge = {
-            'axis': {'range': [None, 100]},
-            'bar': {'color': "#0ea5e9"},
+            'axis': {'range': [None, 100], 'tickfont': {'color': axis_color}},
+            'bar': {'color': "#22d3ee"},
             'steps': [
-                {'range': [0, 50], 'color': "#ef4444"},
-                {'range': [50, 80], 'color': "#f59e0b"},
-                {'range': [80, 100], 'color': "#10b981"}
+                {'range': [0, 50], 'color': 'rgba(251,113,133,0.15)'},
+                {'range': [50, 80], 'color': 'rgba(251,191,36,0.15)'},
+                {'range': [80, 100], 'color': 'rgba(52,211,153,0.15)'}
             ],
         }
     ))
     
     fig.update_layout(
         height=220,
-        margin=dict(l=20, r=20, t=50, b=20)
+        margin=dict(l=20, r=20, t=50, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font={'color': axis_color}
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -1039,7 +550,7 @@ def display_quality_tab(state: WorkflowState):
         color = "#f59e0b"
     else:
         status = "🔴 Needs Improvement"
-        color = "#ef4444"
+        color = "#F43F5E"
         
     st.markdown(f"""
         <div class="confidence-score" style="background: {color}10; border: 2px solid {color}30;">
@@ -1091,7 +602,7 @@ def display_goal_tab(state: WorkflowState):
             status = "Moderately Achievable"
             emoji = "🟡"
         else:
-            color = "#ef4444"
+            color = "#F43F5E"
             status = "Unlikely Achievable"
             emoji = "🔴"
             
@@ -1154,38 +665,45 @@ def display_portfolio_tab(state: WorkflowState):
         
         col1, col2 = st.columns([3, 2])
         
+        theme = st.session_state.get('theme', 'Dark')
+        axis_color = '#A1A1AA' if theme == 'Dark' else '#71717A'
+        text_color = '#FAFAFA' if theme == 'Dark' else '#09090B'
+
         with col1:
             fig = px.pie(
                 names=labels,
                 values=values,
                 title="Recommended Asset & Fund Allocation",
                 hole=0.4,
-                color_discrete_sequence=['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6']
+                color_discrete_sequence=['#3B82F6', '#22D3EE', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6']
             )
             fig.update_layout(
                 height=350,
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font={'family': 'Outfit, sans-serif', 'color': '#475569'},
+                font={'family': 'Outfit, sans-serif', 'color': text_color},
                 margin=dict(l=20, r=20, t=50, b=20),
-                legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5)
+                legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5, font={'color': axis_color})
             )
             st.plotly_chart(fig, use_container_width=True)
             
         with col2:
             st.subheader("Allocation Breakdown")
-            st.markdown("<p style='color: #64748b; font-size: 0.9rem;'>Target weights for optimal risk-adjusted returns:</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color: {axis_color}; font-size: 0.9rem;'>Target weights for optimal risk-adjusted returns:</p>", unsafe_allow_html=True)
             
             for pid, weight in sorted(alloc.items(), key=lambda x: x[1], reverse=True):
                 name = prod_name_map.get(pid, pid)
                 ptype = prod_type_map.get(pid, "Investment")
+                border_color = 'rgba(255,255,255,0.08)' if theme == 'Dark' else 'rgba(0,0,0,0.08)'
+                bg_color = 'rgba(255,255,255,0.04)' if theme == 'Dark' else 'rgba(0,0,0,0.02)'
+                
                 st.markdown(f"""
-                    <div style="background: rgba(248, 250, 252, 0.8); padding: 1rem; border-radius: 12px; margin-bottom: 0.75rem; border: 1px solid #e2e8f0; border-right: 4px solid #4f46e5;">
+                    <div style="background: {bg_color}; padding: 1rem; border-radius: 12px; margin-bottom: 0.75rem; border: 1px solid {border_color}; border-right: 4px solid #3B82F6; backdrop-filter: blur(8px);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <strong style="font-size: 0.95rem; color: #1e293b;">{name}</strong>
-                            <span style="color: #4f46e5; font-weight: 700; font-size: 1rem;">{weight:.1%}</span>
+                            <strong style="font-size: 0.95rem; color: {text_color};">{name}</strong>
+                            <span style="color: #3B82F6; font-weight: 700; font-size: 1rem;">{weight:.1%}</span>
                         </div>
-                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">Type: {ptype}</div>
+                        <div style="font-size: 0.8rem; color: {axis_color}; margin-top: 0.25rem;">Type: {ptype}</div>
                     </div>
                 """, unsafe_allow_html=True)
     else:
@@ -1208,7 +726,7 @@ def display_compliance_tab(state: WorkflowState):
             status = "Fully Compliant"
             emoji = "✅"
         else:
-            color = "#ef4444"
+            color = "#F43F5E"
             status = "Action Required"
             emoji = "❌"
             
@@ -1471,13 +989,14 @@ def display_application(selected_prospect):
     """Display the main application when a prospect is selected."""
     # Prospect Overview in 2x2 Grid - FIXED LAYOUT
     st.markdown(f"""
-        <div style='background: white;
+        <div style='background: var(--bg-card);
                     padding: 1.5rem;
                     border-radius: 16px;
-                    border: 1px solid rgba(226, 232, 240, 0.8);
-                    box-shadow: 0 4px 20px -2px rgba(50, 50, 93, 0.04);
-                    margin-bottom: 1.5rem;'>
-            <h2 style='margin: 0; font-family: "Outfit", sans-serif; font-weight: 700; color: #0f172a; font-size: 1.5rem;'>
+                    border: 1px solid var(--border-glass);
+                    box-shadow: var(--shadow-card);
+                    margin-bottom: 1.5rem;
+                    backdrop-filter: blur(12px);'>
+            <h2 style='margin: 0; font-family: "Outfit", sans-serif; font-weight: 700; color: var(--text-primary); font-size: 1.5rem;'>
                 👤 Prospect: {selected_prospect['name']}
             </h2>
         </div>
@@ -1521,10 +1040,11 @@ def display_application(selected_prospect):
     # Analysis Section
     st.markdown("""
         <h2 style='text-align: center;
-                   color: #1e293b;
+                   color: var(--text-primary);
                    font-size: 1.5rem;
                    font-weight: 700;
-                   margin-bottom: 1.5rem;'>
+                   margin-bottom: 1.5rem;
+                   font-family: "Outfit", sans-serif;'>
             🔍 AI-Powered Analysis
         </h2>
     """, unsafe_allow_html=True)
@@ -1574,10 +1094,11 @@ def display_application(selected_prospect):
         
         st.markdown("""
             <h2 style='text-align: center;
-                       color: #1e293b;
+                       color: var(--text-primary);
                        font-size: 1.5rem;
                        font-weight: 700;
-                       margin-bottom: 1.5rem;'>
+                       margin-bottom: 1.5rem;
+                       font-family: "Outfit", sans-serif;'>
                 📊 Analysis Dashboard
             </h2>
         """, unsafe_allow_html=True)
@@ -1636,14 +1157,15 @@ def display_application(selected_prospect):
             
         elif selected_tab == "💬 Chat Assistant":
             st.markdown("""
-                <div style='background: white;
+                <div style='background: var(--bg-card);
                             padding: 1.5rem;
                             border-radius: 16px;
-                            border: 1px solid rgba(226, 232, 240, 0.8);
-                            box-shadow: 0 4px 20px -2px rgba(50, 50, 93, 0.04);
-                            margin-bottom: 1.5rem;'>
-                    <h2 style='margin: 0 0 0.5rem 0; font-family: "Outfit", sans-serif; color: #0f172a; font-weight: 700; font-size: 1.5rem;'>💬 Chat Assistant</h2>
-                    <p style='margin: 0; color: #64748b; font-size: 0.95rem;'>Ask questions about the analysis</p>
+                            border: 1px solid var(--border-glass);
+                            box-shadow: var(--shadow-card);
+                            margin-bottom: 1.5rem;
+                            backdrop-filter: blur(12px);'>
+                    <h2 style='margin: 0 0 0.5rem 0; font-family: "Outfit", sans-serif; color: var(--text-primary); font-weight: 700; font-size: 1.5rem;'>💬 Chat Assistant</h2>
+                    <p style='margin: 0; color: var(--text-secondary); font-size: 0.95rem;'>Ask questions about the analysis</p>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -1780,6 +1302,19 @@ def main():
         
         st.markdown('<div class="sidebar-compact">', unsafe_allow_html=True)
         
+        # Theme toggle
+        def on_theme_change():
+            pass # Streamlit handles session state automatically for widget keys
+            
+        st.session_state.theme = st.radio(
+            "UI Theme",
+            ["Dark", "Light"],
+            horizontal=True,
+            index=0 if st.session_state.theme == "Dark" else 1
+        )
+        
+        st.divider()
+        
         st.subheader("🧠 ML Model Status")
         model_status = check_model_status()
         
@@ -1804,21 +1339,66 @@ def main():
         st.subheader("👤 Select Prospect")
         prospects = load_prospects()
         
-        # Add empty option at the beginning
-        prospect_options = ["Select prospect..."] + [f"{p['name']} (Age {p['age']})" for p in prospects]
-        selected_idx = st.selectbox(
-            "Choose a prospect:", 
-            range(len(prospect_options)), 
-            format_func=lambda i: prospect_options[i],
+        prospect_source = st.radio(
+            "Prospect Source",
+            ["Existing Prospect", "Create Custom Prospect"],
+            horizontal=True,
             label_visibility="collapsed"
         )
         
-        # Handle the empty selection
-        if selected_idx == 0:
-            selected_prospect = None
-            st.info("👈 Select a prospect to begin analysis")
+        selected_prospect = None
+        
+        if prospect_source == "Existing Prospect":
+            # Add empty option at the beginning
+            prospect_options = ["Select prospect..."] + [f"{p['name']} (Age {p['age']})" for p in prospects]
+            selected_idx = st.selectbox(
+                "Choose a prospect:", 
+                range(len(prospect_options)), 
+                format_func=lambda i: prospect_options[i],
+                label_visibility="collapsed"
+            )
+            
+            # Handle the empty selection
+            if selected_idx > 0:
+                selected_prospect = prospects[selected_idx - 1]  # Adjust for the empty option
+            else:
+                st.info("👈 Select a prospect to begin analysis")
         else:
-            selected_prospect = prospects[selected_idx - 1]  # Adjust for the empty option
+            with st.form("custom_prospect_form"):
+                st.markdown("<h4 style='color: var(--text-primary); margin-top:0; font-family: Outfit, sans-serif;'>✨ Custom Details</h4>", unsafe_allow_html=True)
+                cp_name = st.text_input("Full Name", value="Jane Doe")
+                
+                c1, c2 = st.columns(2)
+                with c1:
+                    cp_age = st.number_input("Age", min_value=18, max_value=100, value=35)
+                    cp_income = st.number_input("Income (₹)", min_value=0, value=1500000, step=100000)
+                    cp_horizon = st.number_input("Horizon (Yrs)", min_value=1, max_value=50, value=10)
+                with c2:
+                    cp_dependents = st.number_input("Dependents", min_value=0, max_value=10, value=2)
+                    cp_savings = st.number_input("Savings (₹)", min_value=0, value=500000, step=100000)
+                    cp_target = st.number_input("Target (₹)", min_value=0, value=5000000, step=500000)
+                
+                cp_experience = st.selectbox("Experience Level", ["Beginner", "Intermediate", "Advanced"])
+                cp_goal = st.text_input("Investment Goal", value="Wealth Accumulation")
+                
+                submit_custom = st.form_submit_button("Analyze Custom Prospect", type="primary", use_container_width=True)
+                
+                if submit_custom:
+                    st.session_state.custom_prospect = {
+                        "prospect_id": f"CUST{random.randint(1000, 9999)}",
+                        "name": cp_name,
+                        "age": cp_age,
+                        "annual_income": cp_income,
+                        "current_savings": cp_savings,
+                        "target_goal_amount": cp_target,
+                        "investment_horizon_years": cp_horizon,
+                        "number_of_dependents": cp_dependents,
+                        "investment_experience_level": cp_experience,
+                        "investment_goal": cp_goal
+                    }
+                    
+            if 'custom_prospect' in st.session_state:
+                selected_prospect = st.session_state.custom_prospect
         
         st.divider()
         

@@ -764,7 +764,7 @@ def test_system_logging():
         return False
 
 
-async def test_sample_analysis():
+async def verify_sample_analysis():
     """Test sample prospect analysis."""
     print("\n Testing Sample Analysis...")
 
@@ -879,7 +879,7 @@ async def run_all_tests():
         ("Agent Init", test_system_agent_initialization),
         ("Workflow Creation", test_system_workflow_creation),
         ("Logging", test_system_logging),
-        ("Sample Analysis", test_sample_analysis),
+        ("Sample Analysis", verify_sample_analysis),
     ]
 
     results = []
